@@ -5,21 +5,28 @@ import Connecting from './components/Connecting/Connecting';
 import GetStarted from './components/GetStarted/GetStarted';
 import FileChooser from './components/FileChooser/FileChooser';
 import socket from './socket';
+import DeviceChooser from './components/DeviceChooser/DeviceChooser';
 
 function App() {
   const [username, setUsername] = useState('');
-  const [files, setFiles] = useState([]);
-  const [connected, setConnected] = useState(false);
+  const [files, setFiles] = useState(['x', 'y']);
+  const [connected, setConnected] = useState(true);
 
   const handleChangeUsername = useCallback(() => {
-    console.log('clearing up...');
     localStorage.removeItem('username');
     localStorage.setItem('lastUsername', username);
     setUsername('');
   }, [username]);
-  
+
+  const handleSendToDevice = (deviceId) => {
+    console.log('sending files to ' + deviceId);
+  };
+
   useEffect(() => {
     socket.connect();
+    return () => {
+      socket.disconnect();
+    }
   }, []);
 
   const onConnect = useCallback(() => {
@@ -69,6 +76,8 @@ function App() {
           {!username && <GetStarted setUsername={setUsername} />}
           {(!files || files.length === 0) &&
             <FileChooser username={username} handleChangeUsername={handleChangeUsername} setFiles={setFiles} />}
+          {(files && files.length > 0) && 
+            <DeviceChooser thisDeviceName={username} handleSendToDevice={handleSendToDevice} />}
         </div>
       }
     </div>

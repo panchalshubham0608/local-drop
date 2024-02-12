@@ -21,12 +21,24 @@
   align-items: center;
 }
 
+.justify-center {
+  justify-content: center;
+}
+
+.m-0 {
+  margin: 0;
+}
+
 .mt-0 {
   margin-top: 0;
 }
 
 .mt-3 {
   margin-top: 0.75rem;
+}
+
+.ml-3 {
+  margin-left: 0.75rem;
 }
 
 .mt-5 {
