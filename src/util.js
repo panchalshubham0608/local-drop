@@ -1,25 +1,25 @@
 import axios from 'axios';
 
-const streamFileToServer = ({ file, source }) => {
+const streamFileToServer = ({ file, source, transferId, onProgress }) => {
     return new Promise(async (resolve, reject) => {
         try {
             const formData = new FormData();
             formData.append('file', file);
 
-            const response = await axios.post('/upload', formData, {
+            const response = await axios.post('http://localhost:8080/upload', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
+                    'X-Transfer-ID': transferId,
                 },
                 onUploadProgress: (progressEvent) => {
                     const progress = Math.round(
                         (progressEvent.loaded / progressEvent.total) * 100
                     );
-                    console.log(`Upload Progress: ${progress}%`);
+                    onProgress(progress);
                 },
                 cancelToken: source.token, // Pass the cancel token to the request
             });
 
-            console.log('File uploaded successfully:', response.data);
             resolve(response.data);
         } catch (error) {
             if (axios.isCancel(error)) {

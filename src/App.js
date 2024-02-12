@@ -6,11 +6,8 @@ import GetStarted from './components/GetStarted/GetStarted';
 import FileChooser from './components/FileChooser/FileChooser';
 import socket from './socket';
 import DeviceChooser from './components/DeviceChooser/DeviceChooser';
-import { readFileInChunks } from './util';
 import axios from 'axios';
 import FileTransfer from './components/FileTransfer/FileTransfer';
-
-const CHUNK_SIZE = 1024;
 
 function App() {
   const [username, setUsername] = useState('');
@@ -35,10 +32,10 @@ function App() {
         ...uploadState,
         targetDeviceName: deviceName,
         targetDeviceId: deviceId,
-        uploading: false,
+        uploading: true,
       }
     });
-    socket.emit('transfer_request', {deviceId, filesCount: files.length});
+    // socket.emit('transfer_request', {deviceId, filesCount: files.length});
   };
 
   const cancelUpload = useCallback(() => {
@@ -57,7 +54,7 @@ function App() {
   useEffect(() => {
     socket.connect();
     return () => {
-      socket.disconnect();
+      // socket.disconnect();
     }
   }, []);
 
@@ -86,12 +83,17 @@ function App() {
   }, []);
 
   const onTransferResponse = useCallback(({accepted}) => {
-    console
     if (!accepted) {
       alert(`Your transfer request was rejected by ${uploadState.targetDeviceName}!`);
       cancelUpload();
       return;
     }
+    setUploadState(uploadState => {
+      return {
+        ...uploadState,
+        uploading: true,
+      }
+    });
   }, [uploadState, cancelUpload]);
 
   // whenever username changes, send an event to the server to notify

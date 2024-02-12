@@ -14,8 +14,7 @@ function DragDropFile(props) {
         if(!window.confirm("Are you sure you want to change files?"))
           return;
       }
-      setFiles(targetFiles);
-      console.log(targetFiles);
+      setFiles(Array.from(targetFiles));
     }, [files, setFiles]);
     
     // handle drag events

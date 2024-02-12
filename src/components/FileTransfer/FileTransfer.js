@@ -1,8 +1,11 @@
-import React from "react";
+import React, { useState } from "react";
 import Loader from "../Loader/Loader";
+import TransferComponent from "./TransferComponent";
+import { v4 as uuidv4 } from 'uuid';
 
 export default function FileTransfer(props){
     const { uploadState, files } = props;
+    const [transferId, _] = useState(uuidv4());
 
     return (
         <div className="centered theme-bg theme-size">
@@ -16,16 +19,13 @@ export default function FileTransfer(props){
                 <div>
                     <p>Your files are on the way to <strong>{uploadState.targetDeviceName}</strong></p>
                     <div className="box item-list">
-                        {files.map((file) =>
-                        <div>                            
-                            <p key={1} className="m-0">
-                                {file}
-                            </p>
-                            <div>
-                                90%
-                            </div>    
-                        </div>                                
-                        )}
+                        {files.map((file) => 
+                            <TransferComponent
+                                key={file.name}
+                                file={file}
+                                transferId={transferId}
+                                source={uploadState.tokenSource}
+                                />)}
                     </div>
                 </div>
             }
