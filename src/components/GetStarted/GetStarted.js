@@ -4,11 +4,12 @@ import './GetStarted.css';
 
 const GetStarted = (props) => {
     const { setUsername } = props;
-    const [value, setValue] = useState('');
+    const [value, setValue] = useState(localStorage.getItem('lastUsername') || '');
     const [remember, setRemember] = useState(true);
 
     // Get username from local storage, if it exists
     useEffect(() => {
+        localStorage.removeItem('lastUsername');
         let username = localStorage.getItem('username');
         if (username) {
             setUsername(username);

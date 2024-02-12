@@ -25,6 +25,18 @@
   margin-top: 0.75rem;
 }
 
+.mt-5 {
+  margin-top: 1.25rem;
+}
+
+.w-100 {
+  width: 100%; 
+}
+
+.text-center {
+  text-align: center;
+}
+
 .btn {
   padding: 10px 20px;
   border: none;
@@ -37,6 +49,13 @@
 
 .btn-primary {
   background-color: #6366f1;
+}
+
+.btn-transparent {
+  background-color: transparent;
+  color: #6366f1;
+  border: none;
+  cursor: pointer;
 }
 
 .theme-size {
