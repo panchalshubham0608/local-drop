@@ -17,6 +17,10 @@
   flex-direction: column;
 }
 
+.align-center {
+  align-items: center;
+}
+
 .mt-0 {
   margin-top: 0;
 }

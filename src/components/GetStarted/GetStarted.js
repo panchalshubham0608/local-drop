@@ -12,6 +12,7 @@ const GetStarted = (props) => {
         localStorage.removeItem('lastUsername');
         let username = localStorage.getItem('username');
         if (username) {
+            console.log('setting username to ', username);
             setUsername(username);
         }
     }, [setUsername]);

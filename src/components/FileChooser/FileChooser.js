@@ -77,13 +77,7 @@ function DragDropFile(props) {
 
 
 const FileChooser = (props) => {
-    const { username, setUsername, setFiles } = props;
-
-    const handleChangeUsername = () => {
-      localStorage.removeItem('username');
-      localStorage.setItem('lastUsername', username);
-      setUsername('');
-    }
+    const { username, handleChangeUsername, setFiles } = props;
 
     return (
         <div className="file-chooser-page theme-size">
