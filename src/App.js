@@ -23,25 +23,39 @@ function App() {
   }, []);
 
   const onConnect = useCallback(() => {
-    console.log('now username= ', username);
     setConnected(true);
-    socket.emit('username', { username });
-  }, [setConnected, username]);
+  }, [setConnected]);
 
   const onDisconnect = useCallback(() => {
     setConnected(false);
     window.location.reload();
   }, [setConnected]);
 
+  const onDuplicate = useCallback(() => {
+    alert(`User ${username} is already connected!`);
+    handleChangeUsername();
+  }, [username, handleChangeUsername]);
+
+  // whenever username changes, send an event to the server to notify
+  useEffect(() => {
+    if (connected && username) {
+      socket.emit('username', { username });
+    }
+  }, [connected, username]);
+
+  // register dependencies
   useEffect(() => {
     socket.on('connect', onConnect);
+    return () => { socket.off('connect', onConnect)};
+  }, [onConnect]);
+  useEffect(() => {
     socket.on('disconnect', onDisconnect);
-
-    return () => {
-      socket.off('connect', onConnect);
-      socket.off('disconnect', onDisconnect);
-    };
-  }, [onConnect, onDisconnect]);
+    return () => { socket.off('disconnect', onDisconnect)};
+  }, [onDisconnect]);
+  useEffect(() => {
+    socket.on('duplicate', onDuplicate);
+    return () => { socket.off('duplicate', onDuplicate)};
+  }, [onDuplicate]);
 
   return (
     <div className="App">
