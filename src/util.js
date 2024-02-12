@@ -33,6 +33,28 @@ const streamFileToServer = ({ file, source, transferId, onProgress }) => {
     });
 };
 
+const streamFileFromServer = ({ fileId, onProgress }) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const response = await axios.get(`http://localhost:8080/download/${fileId}`, {
+                responseType: 'blob',
+                onDownloadProgress: (progressEvent) => {
+                    const progress = Math.round(
+                        (progressEvent.loaded / progressEvent.total) * 100
+                    );
+                    onProgress(progress);
+                },
+            });
+
+            resolve(response.data);
+        } catch (error) {
+            console.error('Error downloading file:', error);
+            reject(error);
+        }
+    });
+};
+
 export {
     streamFileToServer,
+    streamFileFromServer,
 };
