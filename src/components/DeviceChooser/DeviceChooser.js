@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import RefreshIcon from '../../images/refresh-icon.webp';
-import './DeviceChooser.css';
 import Loader from "../Loader/Loader";
+import './DeviceChooser.css';
 
 export default function DeviceChooser(props) {
     const { handleSendToDevice, thisDeviceName } = props;
@@ -44,14 +44,17 @@ export default function DeviceChooser(props) {
                             Try refreshing to scan new devices.
                         </p>}
                     {devices.length > 0 && 
-                        <div className="box device-list">
+                        <div className="box item-list">
                             {devices.map((d) => 
                                 <div key={d.id}>
                                     <p>
                                         <strong>{d.name}</strong>
                                     </p>
                                     <button className="btn btn-primary ml-3"
-                                        onClick={() => handleSendToDevice(d.id)}>Send</button>
+                                        onClick={() => handleSendToDevice({
+                                            deviceId: d.id,
+                                            deviceName: d.name,
+                                            })}>Send</button>
                                 </div>)}
                         </div>
                     }

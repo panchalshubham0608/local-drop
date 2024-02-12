@@ -6,11 +6,22 @@ import GetStarted from './components/GetStarted/GetStarted';
 import FileChooser from './components/FileChooser/FileChooser';
 import socket from './socket';
 import DeviceChooser from './components/DeviceChooser/DeviceChooser';
+import { readFileInChunks } from './util';
+import axios from 'axios';
+import FileTransfer from './components/FileTransfer/FileTransfer';
+
+const CHUNK_SIZE = 1024;
 
 function App() {
   const [username, setUsername] = useState('');
-  const [files, setFiles] = useState(['x', 'y']);
-  const [connected, setConnected] = useState(true);
+  const [files, setFiles] = useState([]);
+  const [connected, setConnected] = useState(false);
+  const [uploadState, setUploadState] = useState({
+    targetDeviceName: '',
+    targetDeviceId: '',
+    uploading: false,
+    tokenSource: axios.CancelToken.source(),
+  });
 
   const handleChangeUsername = useCallback(() => {
     localStorage.removeItem('username');
@@ -18,10 +29,31 @@ function App() {
     setUsername('');
   }, [username]);
 
-  const handleSendToDevice = (deviceId) => {
-    console.log('sending files to ' + deviceId);
+  const handleSendToDevice = ({deviceId, deviceName}) => {
+    setUploadState(uploadState => {
+      return {
+        ...uploadState,
+        targetDeviceName: deviceName,
+        targetDeviceId: deviceId,
+        uploading: false,
+      }
+    });
+    socket.emit('transfer_request', {deviceId, filesCount: files.length});
   };
 
+  const cancelUpload = useCallback(() => {
+    // cancel all ongoing requests
+    uploadState.tokenSource.cancel();
+    // refresh everything
+    setUploadState({
+      targetDeviceName: '',
+      targetDeviceId: '',
+      uploading: false,
+      tokenSource: axios.CancelToken.source(),
+    });
+  }, [uploadState, setUploadState]);
+
+  // make a connection on start-up
   useEffect(() => {
     socket.connect();
     return () => {
@@ -43,6 +75,25 @@ function App() {
     handleChangeUsername();
   }, [username, handleChangeUsername]);
 
+  const onClientDisconnected = useCallback(() => {
+    alert(`Client ${uploadState.targetDeviceName} is unavailable!`);
+    cancelUpload();
+  }, [cancelUpload, uploadState]);
+
+  const onTransferRequest = useCallback(({deviceId, deviceName, filesCount}) => {
+    let accepted = window.confirm(`Accept ${filesCount} files from ${deviceName}?`);
+    socket.emit('transfer_response', {deviceId, accepted});
+  }, []);
+
+  const onTransferResponse = useCallback(({accepted}) => {
+    console
+    if (!accepted) {
+      alert(`Your transfer request was rejected by ${uploadState.targetDeviceName}!`);
+      cancelUpload();
+      return;
+    }
+  }, [uploadState, cancelUpload]);
+
   // whenever username changes, send an event to the server to notify
   useEffect(() => {
     if (connected && username) {
@@ -63,6 +114,18 @@ function App() {
     socket.on('duplicate', onDuplicate);
     return () => { socket.off('duplicate', onDuplicate)};
   }, [onDuplicate]);
+  useEffect(() => {
+    socket.on('client_disconnected', onClientDisconnected);
+    return () => { socket.off('client_disconnected', onClientDisconnected); }
+  });
+  useEffect(() => {
+    socket.on('transfer_request', onTransferRequest);
+    return () => { socket.off('transfer_request', onTransferRequest); }
+  });
+  useEffect(() => {
+    socket.on('transfer_response', onTransferResponse);
+    return () => { socket.off('transfer_response', onTransferResponse); }
+  });
 
   return (
     <div className="App">
@@ -76,8 +139,9 @@ function App() {
           {!username && <GetStarted setUsername={setUsername} />}
           {(!files || files.length === 0) &&
             <FileChooser username={username} handleChangeUsername={handleChangeUsername} setFiles={setFiles} />}
-          {(files && files.length > 0) && 
+          {(!uploadState.targetDeviceName) && 
             <DeviceChooser thisDeviceName={username} handleSendToDevice={handleSendToDevice} />}
+          {uploadState.targetDeviceName && <FileTransfer uploadState={uploadState} files={files} />}
         </div>
       }
     </div>

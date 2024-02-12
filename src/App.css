@@ -79,3 +79,22 @@
   font-family: 'Kalam', cursive !important;
   font-size: 20px !important;
 }
+
+.item-list {
+  padding: 10px !important;
+}
+
+.item-list > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.item-list > div > p{
+  flex: 1;
+  word-break: break-all;
+}
+
+.item-list > div:not(:last-child) {
+  border-bottom: 1px solid #f1f1f1;
+}

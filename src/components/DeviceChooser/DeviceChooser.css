@@ -1,22 +1,5 @@
-.device-list {
-    padding: 10px !important;
-}
-
-.device-list > div {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-.device-list > div > p{
-    flex: 1;
-    word-break: break-all;
-}
-.device-list > div > button {
+.item-list > div > button {
     background-color: #f7fafc;
     color: black;
-}
-
-.device-list > div:not(:last-child) {
-    border-bottom: 1px solid #f1f1f1;
-}
+  }
+  

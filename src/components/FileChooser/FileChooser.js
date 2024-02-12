@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import './FileChooser.css';
 
 // drag drop file component
@@ -8,6 +8,15 @@ function DragDropFile(props) {
     const [dragActive, setDragActive] = React.useState(false);
     // ref
     const inputRef = React.useRef(null);
+
+    const changeFiles = useCallback((targetFiles) => {
+      if (files && files.length > 0) {
+        if(!window.confirm("Are you sure you want to change files?"))
+          return;
+      }
+      setFiles(targetFiles);
+      console.log(targetFiles);
+    }, [files, setFiles]);
     
     // handle drag events
     const handleDrag = function(e) {
@@ -26,7 +35,8 @@ function DragDropFile(props) {
       e.stopPropagation();
       setDragActive(false);
       if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-        setFiles(e.dataTransfer.files);
+        changeFiles(e.dataTransfer.files);
+        // setFiles(e.dataTransfer.files);
       }
     };
     
@@ -34,7 +44,8 @@ function DragDropFile(props) {
     const handleChange = function(e) {
       e.preventDefault();
       if (e.target.files && e.target.files[0]) {
-        setFiles(e.target.files);
+        changeFiles(e.target.files);
+        // setFiles(e.target.files);
       }
     };
     
