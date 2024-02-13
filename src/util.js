@@ -36,7 +36,6 @@ const streamFileToServer = ({ file, source, transferId, onProgress }) => {
 
 const downloadFileFromServer = ({ file, source, onProgress }) => {
     return new Promise(async (resolve, reject) => {
-        console.log('downloading', file);
         try {
             const response = await axios.get(`http://localhost:8080/download`, {
                 responseType: 'blob',
@@ -62,8 +61,13 @@ const downloadFileFromServer = ({ file, source, onProgress }) => {
 
             resolve();
         } catch (error) {
-            console.error('Error downloading file:', error);
-            reject(error);
+            if (axios.isCancel(error)) {
+                console.log('Request canceled:', error.message);
+                reject(error.message);
+            } else {
+                console.error('Error uploading file:', error);
+                reject(error);
+            }
         }
     });
 };

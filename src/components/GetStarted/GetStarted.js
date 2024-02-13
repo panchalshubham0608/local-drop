@@ -12,7 +12,6 @@ const GetStarted = (props) => {
         localStorage.removeItem('lastdeviceName');
         let deviceName = localStorage.getItem('deviceName');
         if (deviceName) {
-            console.log('setting deviceName to ', deviceName);
             setDeviceName(deviceName);
         }
     }, [setDeviceName]);

@@ -126,8 +126,6 @@ function App() {
   }, [cancelTransfer]);
 
   const onFileReadyToDownload = useCallback(({ file }) => {
-    console.log('Ready to download', file);
-    console.log('old files', files);
     let newFiles = files.map(f => {
       if (f.id === file.id) {
         return {
@@ -138,7 +136,6 @@ function App() {
       }
       return f;
     });
-    console.log('new files', newFiles);
     setFiles(newFiles);
   }, [files, setFiles]);
 
