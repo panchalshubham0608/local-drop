@@ -12,7 +12,7 @@ export default function DeviceChooser(props) {
         setLoading(true);
         fetch(`http://localhost:8080/devices`)
         .then(response => response.json())
-        .then(data => setDevices(data.devices.filter(d => d.name !== thisDeviceName)))
+        .then(data => setDevices(data.devices.filter(deviceName => deviceName !== thisDeviceName)))
         .catch(err => console.log(err))
         .finally(() => setLoading(false));
     }, [setLoading, setDevices, thisDeviceName]);
@@ -45,15 +45,14 @@ export default function DeviceChooser(props) {
                         </p>}
                     {devices.length > 0 && 
                         <div className="box item-list">
-                            {devices.map((d) => 
-                                <div key={d.id}>
+                            {devices.map(deviceName => 
+                                <div key={deviceName}>
                                     <p>
-                                        <strong>{d.name}</strong>
+                                        <strong>{deviceName}</strong>
                                     </p>
                                     <button className="btn btn-primary ml-3"
                                         onClick={() => handleSendToDevice({
-                                            deviceId: d.id,
-                                            deviceName: d.name,
+                                            deviceName: deviceName,
                                             })}>Send</button>
                                 </div>)}
                         </div>

@@ -3,25 +3,25 @@ import { useState, useEffect } from 'react';
 import './GetStarted.css';
 
 const GetStarted = (props) => {
-    const { setUsername } = props;
-    const [value, setValue] = useState(localStorage.getItem('lastUsername') || '');
+    const { setDeviceName } = props;
+    const [value, setValue] = useState(localStorage.getItem('lastdeviceName') || '');
     const [remember, setRemember] = useState(true);
 
-    // Get username from local storage, if it exists
+    // Get deviceName from local storage, if it exists
     useEffect(() => {
-        localStorage.removeItem('lastUsername');
-        let username = localStorage.getItem('username');
-        if (username) {
-            console.log('setting username to ', username);
-            setUsername(username);
+        localStorage.removeItem('lastdeviceName');
+        let deviceName = localStorage.getItem('deviceName');
+        if (deviceName) {
+            console.log('setting deviceName to ', deviceName);
+            setDeviceName(deviceName);
         }
-    }, [setUsername]);
+    }, [setDeviceName]);
 
     const handleSubmit = () => {
         if (remember) {
-            localStorage.setItem('username', value);
+            localStorage.setItem('deviceName', value);
         }
-        setUsername(value);
+        setDeviceName(value);
     };
 
     return (
@@ -31,7 +31,7 @@ const GetStarted = (props) => {
                 <div className='text-input-item'>
                     <input
                         type='text'
-                        placeholder='Enter your username'
+                        placeholder='Enter your deviceName'
                         value={value}
                         onChange={(e) => setValue(e.target.value)}
                         autoFocus

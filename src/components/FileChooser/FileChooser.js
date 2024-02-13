@@ -87,15 +87,15 @@ function DragDropFile(props) {
 
 
 const FileChooser = (props) => {
-    const { username, handleChangeUsername, setFiles } = props;
+    const { deviceName, handleChangedeviceName, setFiles } = props;
 
     return (
         <div className="file-chooser-page theme-size">
             <p className="sticky-top">
               You are visible as
               <button className="btn-transparent theme-size"
-                onClick={handleChangeUsername}
-              ><strong>{username}</strong></button>
+                onClick={handleChangedeviceName}
+              ><strong>{deviceName}</strong></button>
             </p>
             <h1>Drag & Drop your files</h1>
             <DragDropFile setFiles={setFiles} />

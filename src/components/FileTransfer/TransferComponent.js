@@ -7,9 +7,13 @@ export default function TransferComponent(props) {
     const { file, source, transferId, onDone, uploading } = props;
     const [progress, setProgress] = useState(0);
     const [status, setStatus] = useState('pending');
+    const [requestSent, setRequestSent] = useState(false);
 
     useEffect(() => {
-        if (uploading) {
+        console.log('testing...');
+        if (uploading && !requestSent) {
+            setRequestSent(true);
+            console.log('uploading', file.name);
             streamFileToServer({
                 file,
                 source,
@@ -24,7 +28,7 @@ export default function TransferComponent(props) {
                 onDone(null);
             });
         }
-    }, [file, setProgress, onDone, source, transferId, setStatus, uploading]);
+    }, [file, setProgress, onDone, source, transferId, setStatus, uploading, requestSent, setRequestSent]);
 
     return (
         <div>

@@ -1,54 +1,59 @@
 import React, { useEffect, useCallback } from 'react';
 import { useState } from 'react';
-import './App.css';
 import Connecting from './components/Connecting/Connecting';
 import GetStarted from './components/GetStarted/GetStarted';
 import FileChooser from './components/FileChooser/FileChooser';
-import socket from './socket';
 import DeviceChooser from './components/DeviceChooser/DeviceChooser';
-import axios from 'axios';
 import FileTransfer from './components/FileTransfer/FileTransfer';
+import socket from './socket';
+import axios from 'axios';
+import './App.css';
 
 function App() {
-  const [username, setUsername] = useState('');
+  const [deviceName, setDeviceName] = useState('');
   const [files, setFiles] = useState([]);
   const [connected, setConnected] = useState(false);
-  const [transferState, settransferState] = useState({
+  const [transferState, setTransferState] = useState({
     targetDeviceName: '',
-    uploading: false,
-    downloading: false,
+    status: '',
     tokenSource: axios.CancelToken.source(),
   });
 
-  const handleChangeUsername = useCallback(() => {
-    localStorage.removeItem('username');
-    localStorage.setItem('lastUsername', username);
-    setUsername('');
-  }, [username]);
+  const handleChangedeviceName = useCallback(() => {
+    localStorage.removeItem('deviceName');
+    localStorage.setItem('lastdeviceName', deviceName);
+    setDeviceName('');
+  }, [deviceName]);
 
   const handleSendToDevice = ({deviceName}) => {
-    settransferState(transferState => {
+    setTransferState(transferState => {
       return {
         ...transferState,
         targetDeviceName: deviceName,
-        uploading: false,  
-        downloading: false,      
+        status: 'waiting_approval',
       }
     });
-    socket.emit('transfer_request', {deviceName, files: files.map(file => file.name)});
+    socket.emit('transfer_request', {
+      toDeviceName: deviceName,
+      files: files.map(file => {
+        return { name: file.name };
+      })
+    });
   };
 
-  const cancelUploadDownload = useCallback(() => {
+  const cancelTransfer = useCallback(() => {
     // cancel all ongoing requests
     transferState.tokenSource.cancel();
     // refresh everything
-    settransferState({
+    if (transferState.status === 'downloading') {
+      setFiles([]);
+    }
+    setTransferState({
       targetDeviceName: '',
-      uploading: false,
-      downloading: false,
+      status: '',
       tokenSource: axios.CancelToken.source(),
     });
-  }, [transferState, settransferState]);
+  }, [transferState, setTransferState]);
 
   const handleIndividualFileTransferred = useCallback((file) => {
     if (file) {
@@ -70,61 +75,62 @@ function App() {
 
   const onDisconnect = useCallback(() => {
     setConnected(false);
-    transferState.tokenSource.cancel();
+    cancelTransfer();
     window.location.reload();
-  }, [setConnected, transferState]);
+  }, [setConnected, cancelTransfer]);
 
   const onDuplicate = useCallback(() => {
-    alert(`User ${username} is already connected!`);
-    handleChangeUsername();
-  }, [username, handleChangeUsername]);
+    alert(`User ${deviceName} is already connected!`);
+    handleChangedeviceName();
+  }, [deviceName, handleChangedeviceName]);
 
   const onClientDisconnected = useCallback(() => {
-    alert(`Client ${transferState.targetDeviceName} is unavailable!`);
-    cancelUploadDownload();
-  }, [cancelUploadDownload, transferState]);
+    if (transferState.targetDeviceName) {
+      alert(`Client ${transferState.targetDeviceName} is unavailable!`);
+    }
+    cancelTransfer();
+  }, [cancelTransfer, transferState]);
 
-  const onTransferRequest = useCallback(({deviceName, files}) => {
+  const onTransferRequest = useCallback(({ fromDeviceName, files }) => {
     let filesCount = files.length;
-    let accepted = window.confirm(`Accept ${filesCount} files from ${deviceName}?`);
-    socket.emit('transfer_response', {deviceName, accepted});
+    let accepted = window.confirm(`Accept ${filesCount} files from ${fromDeviceName}?`);
+    socket.emit('transfer_response', { toDeviceName: fromDeviceName, accepted });
     if (accepted) {
       setFiles(files);
-      settransferState(transferState => {
+      setTransferState(transferState => {
         return {
           ...transferState,
-          targetDeviceName: deviceName,
-          uploading: false,
-          downloading: true,
+          targetDeviceName: fromDeviceName,
+          status: 'downloading',
         }
       });
     }
   }, []);
 
-  const onTransferResponse = useCallback(({accepted}) => {
+  const onTransferResponse = useCallback(({ accepted, fromDeviceName }) => {
     if (!accepted) {
-      alert(`Your transfer request was rejected by ${transferState.targetDeviceName}!`);
-      cancelUploadDownload();
+      alert(`Your transfer request was rejected by ${fromDeviceName}!`);
+      cancelTransfer();
       return;
     }
-    settransferState(transferState => {
+    setTransferState(transferState => {
       return {
         ...transferState,
-        uploading: true,
+        status: 'uploading',
       }
     });
-  }, [transferState, cancelUploadDownload]);
+  }, [cancelTransfer]);
 
   // const onFileReady = useCallback((file) => {
 
   // }, []);
 
-  // whenever username changes, send an event to the server to notify
+  // whenever deviceName changes, send an event to the server to notify
   useEffect(() => {
-    if (connected && username) {
-      socket.emit('username', { username });
+    if (connected && deviceName) {
+      socket.emit('deviceName', { deviceName });
     }
-  }, [connected, username]);
+  }, [connected, deviceName]);
 
   // register dependencies
   useEffect(() => {
@@ -161,11 +167,11 @@ function App() {
       {
         connected && 
         <div>
-          {!username && <GetStarted setUsername={setUsername} />}
+          {!deviceName && <GetStarted setDeviceName={setDeviceName} />}
           {(!files || files.length === 0) &&
-            <FileChooser username={username} handleChangeUsername={handleChangeUsername} setFiles={setFiles} />}
+            <FileChooser deviceName={deviceName} handleChangedeviceName={handleChangedeviceName} setFiles={setFiles} />}
           {(!transferState.targetDeviceName) && 
-            <DeviceChooser thisDeviceName={username} handleSendToDevice={handleSendToDevice} />}
+            <DeviceChooser thisDeviceName={deviceName} handleSendToDevice={handleSendToDevice} />}
           {transferState.targetDeviceName &&
             <FileTransfer
               transferState={transferState}
