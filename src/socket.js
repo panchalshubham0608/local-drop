@@ -1,7 +1,7 @@
 import { io } from 'socket.io-client';
+import { baseUrl } from './util';
 
-const url = "http://localhost:8080";
-const socket = io(url, {
+const socket = io(baseUrl, {
     autoConnect: false,
     reconnection: true,
     reconnectionAttempts: 10,    

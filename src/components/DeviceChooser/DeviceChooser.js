@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import RefreshIcon from '../../images/refresh-icon.webp';
 import Loader from "../Loader/Loader";
 import './DeviceChooser.css';
+import { baseUrl } from "../../util";
 
 export default function DeviceChooser(props) {
     const { handleSendToDevice, thisDeviceName } = props;
@@ -10,7 +11,7 @@ export default function DeviceChooser(props) {
 
     const refreshDevices = useCallback(() => {
         setLoading(true);
-        fetch(`http://localhost:8080/devices`)
+        fetch(`${baseUrl}/devices`)
         .then(response => response.json())
         .then(data => setDevices(data.devices.filter(deviceName => deviceName !== thisDeviceName)))
         .catch(err => console.log(err))

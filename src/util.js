@@ -1,12 +1,16 @@
 import axios from 'axios';
 
+let origin = window.location.origin;
+let originWithoutPort = origin.substring(0, origin.length - 5);
+const baseUrl = `${originWithoutPort}:8080`;
+
 const streamFileToServer = ({ file, source, transferId, onProgress }) => {
     return new Promise(async (resolve, reject) => {
         try {
             const formData = new FormData();
             formData.append('file', file);
 
-            const response = await axios.post('http://localhost:8080/upload', formData, {
+            const response = await axios.post(`${baseUrl}/upload`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                     'X-Transfer-ID': transferId,
@@ -37,7 +41,7 @@ const streamFileToServer = ({ file, source, transferId, onProgress }) => {
 const downloadFileFromServer = ({ file, source, onProgress }) => {
     return new Promise(async (resolve, reject) => {
         try {
-            const response = await axios.get(`http://localhost:8080/download`, {
+            const response = await axios.get(`${baseUrl}/download`, {
                 responseType: 'blob',
                 headers: {
                     'X-Blob-Path': file.path,
@@ -73,6 +77,7 @@ const downloadFileFromServer = ({ file, source, onProgress }) => {
 };
 
 export {
+    baseUrl,
     streamFileToServer,
     downloadFileFromServer,
 };
