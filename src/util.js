@@ -10,6 +10,7 @@ const streamFileToServer = ({ file, source, transferId, onProgress }) => {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                     'X-Transfer-ID': transferId,
+                    'X-File-ID': file.id,
                 },
                 onUploadProgress: (progressEvent) => {
                     const progress = Math.round(
@@ -33,20 +34,33 @@ const streamFileToServer = ({ file, source, transferId, onProgress }) => {
     });
 };
 
-const streamFileFromServer = ({ fileId, onProgress }) => {
+const downloadFileFromServer = ({ file, source, onProgress }) => {
     return new Promise(async (resolve, reject) => {
+        console.log('downloading', file);
         try {
-            const response = await axios.get(`http://localhost:8080/download/${fileId}`, {
+            const response = await axios.get(`http://localhost:8080/download`, {
                 responseType: 'blob',
+                headers: {
+                    'X-Blob-Path': file.path,
+                },
                 onDownloadProgress: (progressEvent) => {
                     const progress = Math.round(
                         (progressEvent.loaded / progressEvent.total) * 100
                     );
                     onProgress(progress);
                 },
+                cancelToken: source.token, // Pass the cancel token to the request
             });
 
-            resolve(response.data);
+            const downloadUrl = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = downloadUrl;
+            link.setAttribute('download', file.name);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            resolve();
         } catch (error) {
             console.error('Error downloading file:', error);
             reject(error);
@@ -56,5 +70,5 @@ const streamFileFromServer = ({ fileId, onProgress }) => {
 
 export {
     streamFileToServer,
-    streamFileFromServer,
+    downloadFileFromServer,
 };

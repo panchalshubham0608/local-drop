@@ -1,29 +1,26 @@
 import React, { useEffect, useState } from "react";
 import TransferComponent from "./TransferComponent";
-import { streamFileToServer } from "../../util";
+import { downloadFileFromServer } from "../../util";
 
-export default function UploadComponent(props) {
-    const { file, status, source, transferId, handleFileUploaded } = props;
+export default function DownloadComponent(props) {
+    const { file, source } = props;
     const [progress, setProgress] = useState(0);
-    const [thisStatus, setThisStatus] = useState('pending');
-
+    const [thisStatus, setThisStatus] = useState(file.status);
+    
     useEffect(() => {
-        if (status === 'waiting_approval') return;
-        if (thisStatus !== 'pending') return;
+        if (thisStatus !== 'available') return;
         setThisStatus('transferring');
-        streamFileToServer({
+        downloadFileFromServer({
             file,
             source,
-            transferId,
             onProgress: (p) => setProgress(p),
-        }).then(response => {
+        }).then(() => {
             setThisStatus('success');
-            handleFileUploaded(response.file);
         }).catch(err => {
             console.log(err);
             setThisStatus('failed');
         });
-    }, [status, thisStatus, file, source, transferId, setProgress, handleFileUploaded]);
+    }, [thisStatus, setThisStatus, file, source, setProgress]);
 
     return (
         <TransferComponent
@@ -32,4 +29,4 @@ export default function UploadComponent(props) {
             progress={progress}
         />
     );
-}
+};

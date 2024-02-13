@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import UploadComponent from "./UploadComponent";
 
 export default function FileUploads(props) {
-    const { status, targetDeviceName, files, source } = props;
+    const { status, targetDeviceName, files, source, handleFileUploaded } = props;
     const [transferId, ] = useState(uuidv4());
 
     const waiting = (status === 'waiting_approval');
@@ -27,6 +27,7 @@ export default function FileUploads(props) {
                             status={status}
                             source={source}
                             transferId={transferId}
+                            handleFileUploaded={handleFileUploaded}
                         />)}
                 </div>
             </div>}

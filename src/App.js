@@ -8,6 +8,7 @@ import FileUploads from './components/FileTransfer/FileUploads';
 import socket from './socket';
 import axios from 'axios';
 import './App.css';
+import FileDownloads from './components/FileTransfer/FileDownloads';
 
 function App() {
   const [deviceName, setDeviceName] = useState('');
@@ -36,10 +37,14 @@ function App() {
     socket.emit('transfer_request', {
       toDeviceName: deviceName,
       files: files.map(file => {
-        return { name: file.name };
+        return { name: file.name, id: file.id };
       })
     });
   };
+
+  const handleFileUploaded = useCallback((file) => {
+    socket.emit('file_ready_to_download', { toDeviceName: transferState.targetDeviceName, file });
+  }, [transferState.targetDeviceName]);
 
   const cancelTransfer = useCallback(() => {
     // cancel all ongoing requests
@@ -90,7 +95,12 @@ function App() {
     let accepted = window.confirm(`Accept ${filesCount} files from ${fromDeviceName}?`);
     socket.emit('transfer_response', { toDeviceName: fromDeviceName, accepted });
     if (accepted) {
-      setFiles(files);
+      setFiles(files.map(f => {
+        return {
+          ...f,
+          status: 'pending',
+        }
+      }));
       setTransferState(transferState => {
         return {
           ...transferState,
@@ -99,7 +109,7 @@ function App() {
         }
       });
     }
-  }, []);
+  }, [setFiles]);
 
   const onTransferResponse = useCallback(({ accepted, fromDeviceName }) => {
     if (!accepted) {
@@ -115,9 +125,22 @@ function App() {
     });
   }, [cancelTransfer]);
 
-  // const onFileReady = useCallback((file) => {
-
-  // }, []);
+  const onFileReadyToDownload = useCallback(({ file }) => {
+    console.log('Ready to download', file);
+    console.log('old files', files);
+    let newFiles = files.map(f => {
+      if (f.id === file.id) {
+        return {
+          ...f,
+          ...file,
+          status: 'available',
+        }
+      }
+      return f;
+    });
+    console.log('new files', newFiles);
+    setFiles(newFiles);
+  }, [files, setFiles]);
 
   // whenever deviceName changes, send an event to the server to notify
   useEffect(() => {
@@ -151,6 +174,10 @@ function App() {
     socket.on('transfer_response', onTransferResponse);
     return () => { socket.off('transfer_response', onTransferResponse); }
   });
+  useEffect(() => {
+    socket.on('file_ready_to_download', onFileReadyToDownload);
+    return () => { socket.off('file_ready_to_download', onFileReadyToDownload); }
+  });
 
   return (
     <div className="App">
@@ -168,13 +195,19 @@ function App() {
             <DeviceChooser thisDeviceName={deviceName} handleSendToDevice={handleSendToDevice} />}
           {transferState.targetDeviceName &&
           (
-            (transferState.status === 'downloading' && <p>Downloading...</p>) ||
+            (transferState.status === 'downloading' &&
+              <FileDownloads 
+                files={files}
+                targetDeviceName={transferState.targetDeviceName}
+                source={transferState.tokenSource}
+              />) ||
             (transferState.status !== 'downloading' && 
               <FileUploads
                 status={transferState.status}
                 targetDeviceName={transferState.targetDeviceName}
                 files={files}
                 source={transferState.tokenSource}
+                handleFileUploaded={handleFileUploaded}
               />)
           )}
         </div>

@@ -1,5 +1,6 @@
 import React, { useCallback, useState } from "react";
 import './FileChooser.css';
+import { v4 as uuidv4 } from 'uuid';
 
 // drag drop file component
 function DragDropFile(props) {
@@ -14,7 +15,10 @@ function DragDropFile(props) {
         if(!window.confirm("Are you sure you want to change files?"))
           return;
       }
-      setFiles(Array.from(targetFiles));
+      setFiles(Array.from(targetFiles).map(f => {
+        f.id = uuidv4();
+        return f;
+      }));
     }, [files, setFiles]);
     
     // handle drag events
