@@ -4,7 +4,7 @@ import Connecting from './components/Connecting/Connecting';
 import GetStarted from './components/GetStarted/GetStarted';
 import FileChooser from './components/FileChooser/FileChooser';
 import DeviceChooser from './components/DeviceChooser/DeviceChooser';
-import FileTransfer from './components/FileTransfer/FileTransfer';
+import FileUploads from './components/FileTransfer/FileUploads';
 import socket from './socket';
 import axios from 'axios';
 import './App.css';
@@ -54,12 +54,6 @@ function App() {
       tokenSource: axios.CancelToken.source(),
     });
   }, [transferState, setTransferState]);
-
-  const handleIndividualFileTransferred = useCallback((file) => {
-    if (file) {
-      socket.emit('file_ready', {deviceName: transferState.targetDeviceName, file});
-    }
-  }, [transferState.targetDeviceName]);
 
   // make a connection on start-up
   useEffect(() => {
@@ -173,10 +167,16 @@ function App() {
           {(!transferState.targetDeviceName) && 
             <DeviceChooser thisDeviceName={deviceName} handleSendToDevice={handleSendToDevice} />}
           {transferState.targetDeviceName &&
-            <FileTransfer
-              transferState={transferState}
-              files={files}
-              handleIndividualFileTransferred={handleIndividualFileTransferred}/>}
+          (
+            (transferState.status === 'downloading' && <p>Downloading...</p>) ||
+            (transferState.status !== 'downloading' && 
+              <FileUploads
+                status={transferState.status}
+                targetDeviceName={transferState.targetDeviceName}
+                files={files}
+                source={transferState.tokenSource}
+              />)
+          )}
         </div>
       }
     </div>
